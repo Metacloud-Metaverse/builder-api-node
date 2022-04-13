@@ -7,29 +7,28 @@ class SceneController {
 
     static async saveBuilder(req, res, next) {
         try {
-            const data = {
-                "user_id": req.user.user_id,
-                "title": req.body.title,
-                "data": req.body.data
-            };
-            const scene_id = req.body.scene_id;
-            if(!scene_id){
+            const data = req.body;
+            data.user_id = req.user.user_id;
+            if(!data.scene_id){
                     await sceneModel.create(data, "Scene created successfully");
                     apiResponseHandler.send(req, res, "data", data, "Scene saved successfully")
             }else{
-                    let isSceneExist = await SceneController.sceneExist(scene_id)
-                    if (!isSceneExist) {
-                        const err = "error";
-                        apiResponseHandler.sendError(req, res, "data", err, "No scene exist with given scene_id");
+                let isSceneExist = await SceneController.sceneExist(data.scene_id)
+                if (!isSceneExist) {
+                    apiResponseHandler.sendError(req, res, "data", null, "No scene exist with given scene_id");
+                } else {
+                    const result = isSceneExist.toJSON();
+                    if (result.user_id == req.user.user_id){
+                        await sceneModel.update(data, { where: { id: data.scene_id } });
+                        apiResponseHandler.send(req, res, "data", data, "Scene updated successfully")
                     } else {
-                    sceneModel.update(data, { where: { id: scene_id } });
-                    apiResponseHandler.send(req, res, "data", data, "Scene updated successfully")
+                        apiResponseHandler.sendError(req, res, "data", null, "You do not have permissions to edit this scene.");
                     }
+                }
             }
         } catch (error) {
-            next(error);
+            apiResponseHandler.sendError(req, res, "data", null, "Error saving this scene. Please try again with correct data.");
         }
-
     }
    
     static async listMeScene(req, res, next) {
@@ -43,7 +42,7 @@ class SceneController {
                 if (Array.isArray(result) && result.length) {
                     apiResponseHandler.send(req, res, "data", result, "List all scene data for curren user successfully")
                 } else {
-                    apiResponseHandler.send(req, res, "data", result, "No Data found for current user")
+                    apiResponseHandler.send(req, res, "data", null, "No Data found for current user")
                 }
             }
         }
