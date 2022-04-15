@@ -10,9 +10,9 @@ class SceneController {
             const data = req.body;
             data.user_id = req.user.user_id;
             if(!data.scene_id){
-                    await sceneModel.create(data, "Scene created successfully");
-                    apiResponseHandler.send(req, res, "data", data, "Scene saved successfully")
-            }else{
+                await sceneModel.create(data, "Scene created successfully");
+                apiResponseHandler.send(req, res, "data", data, "Scene saved successfully")
+            } else {
                 let isSceneExist = await SceneController.sceneExist(data.scene_id)
                 if (!isSceneExist) {
                     apiResponseHandler.sendError(req, res, "data", null, "No scene exist with given scene_id");
@@ -37,7 +37,7 @@ class SceneController {
             let isSceneExist = await SceneController.sceneExistListMe(req.user.user_id)
             if (!isSceneExist) {
                 const err = "error";
-            }else{
+            } else {
                 const result = isSceneExist;
                 if (Array.isArray(result) && result.length) {
                     apiResponseHandler.send(req, res, "data", result, "List all scene data for curren user successfully")
