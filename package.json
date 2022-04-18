@@ -7,7 +7,8 @@
     "start": "export NODE_ENV=production && node ./src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node src/index.ts",
-    "prod": "export NODE_ENV=production && node src/index.ts"
+    "prod": "export NODE_ENV=production && node src/index.ts",
+    "nodemon": "nodemon ./src/index.ts"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +21,7 @@
     "sequelize": "^6.17.0"
   },
   "devDependencies": {
+    "nodemon": "^2.0.15",
     "typescript": "^4.6.2"
   },
   "repository": {

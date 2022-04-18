@@ -1,24 +1,24 @@
 
-const ApiResponseCode = require("../constants/ApiResponseCode.ts");
-const BaseException = require("../exceptions/BaseException.ts");
+const ApiResponseCode = require("../constants/ApiResponseCode");
+const BaseException = require("../exceptions/BaseException");
 
 module.exports = class ApiResponse {
-  static error(req, res, statusCode, errors, message) {
+  static error(req: any, res: any, statusCode: any, errors: any, message: any) {
     res.status(400);
     res.send({ statusCode, errors, message });
     return;
   }
 
   static send(
-    req,
-    res,
-    dataKey,
-    data,
+    req: any,
+    res: any,
+    dataKey: any,
+    data: any,
     message = "",
     statusCode = ApiResponseCode.SUCCESS,
     serverCode = 200
   ) {
-    const response = {};
+    const response: any = {};
     response.statusCode = statusCode;
     if (dataKey) {
       response[dataKey] = data;
@@ -30,15 +30,15 @@ module.exports = class ApiResponse {
   }
 
   static sendError(
-    req,
-    res,
-    dataKey,
-    data,
+    req: any,
+    res: any,
+    dataKey: any,
+    data: any,
     message = "",
     statusCode = ApiResponseCode.FAIL,
     serverCode = 400
   ) {
-    const response = {};
+    const response: any = {};
     response.statusCode = statusCode;
     if (dataKey) {
       response[dataKey] = data;
@@ -49,8 +49,8 @@ module.exports = class ApiResponse {
     return res.status(serverCode).json(response);
   }
 
-  static sendException(req, res, exception) {
-    const response = {};
+  static sendException(req: any, res: any, exception: any) {
+    const response: any = {};
     response.data = null;
     if (exception instanceof BaseException) {
       response.statusCode = exception.statusCode;
@@ -69,7 +69,7 @@ module.exports = class ApiResponse {
    * @param res
    * @returns {*}
    */
-  static sendFromOptions(req, res, options) {
+  static sendFromOptions(req: any, res: any, options: any) {
     const statusCode = options.statusCode || ApiResponseCode.SUCCESS;
     const serverCode = options.serverCode || 200;
     const data = options.data || null;

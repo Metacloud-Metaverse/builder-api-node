@@ -5,7 +5,7 @@ const apiResponseHandler = require('../helper/ApiResponse.ts')
 
 class SceneController {
 
-    static async saveBuilder(req, res, next) {
+    static async saveBuilder(req: any, res: any, next: any) {
         try {
             const data = req.body;
             data.user_id = req.user.user_id;
@@ -31,7 +31,7 @@ class SceneController {
         }
     }
    
-    static async listMeScene(req, res, next) {
+    static async listMeScene(req: any, res: any, next: any) {
         try {
             //get scenes form list for current user
             let isSceneExist = await SceneController.sceneExistListMe(req.user.user_id)
@@ -50,10 +50,10 @@ class SceneController {
             next(error)
         }
     }
-    static async sceneExist(id) {
+    static async sceneExist(id: number) {
         return sceneModel.findOne({ where: { id: id } })
     }
-    static async sceneExistListMe(id) {
+    static async sceneExistListMe(id: number) {
         return sceneModel.findAll({ where: { user_id: id } })
     }
 }

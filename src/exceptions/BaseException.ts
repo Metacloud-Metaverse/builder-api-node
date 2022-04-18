@@ -7,7 +7,7 @@ module.exports = class BaseException extends Error {
     // public statusCode:string = '';
     // public serverCode:number = 0;
 
-    constructor(message, statusCode = ApiResponseTemp.FAIL, serverCode = 400) {
+    constructor(message: any, statusCode = ApiResponseTemp.FAIL, serverCode = 400) {
         super();
         Error.captureStackTrace(this, this.constructor);
         this.name = this.constructor.name;
