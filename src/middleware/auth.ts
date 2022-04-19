@@ -3,7 +3,7 @@ const ApiResponseHandler = require('../helper/ApiResponse.ts')
 
 const config = process.env;
 
-const verifyToken = (req: any, res: any, next: any) => {
+const verifyToken = (req, res, next) => {
     const bearerHeader = req.headers["authorization"];
     if (!bearerHeader) {
         const err = "error";
@@ -15,7 +15,7 @@ const verifyToken = (req: any, res: any, next: any) => {
         req.user = decoded;
         return next();
     } catch (err) {
-        ApiResponseHandler.sendError(req, res, "data", err, "User does not exist");
+        ApiResponseHandler.sendError(req, res, "data", err, "Invalid Token");
     }
     }
 };
