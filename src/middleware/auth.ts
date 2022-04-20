@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
         req.user = decoded;
         return next();
     } catch (err) {
-        ApiResponseHandler.sendError(req, res, "data", err, "Invalid Token");
+        ApiResponseHandler.sendError(req, res, "data", err, "User does not exist");
     }
     }
 };
