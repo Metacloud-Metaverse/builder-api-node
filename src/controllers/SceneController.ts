@@ -9,7 +9,7 @@ class SceneController {
         try {
             const data = req.body;
             data.user_id = req.user.user_id;
-            if(!data.scene_id){
+            if (!data.scene_id) {
                 await sceneModel.create(data, "Scene created successfully");
                 apiResponseHandler.send(req, res, "data", data, "Scene saved successfully")
             } else {
@@ -18,7 +18,7 @@ class SceneController {
                     apiResponseHandler.sendError(req, res, "data", null, "No scene exist with given scene_id");
                 } else {
                     const result = isSceneExist.toJSON();
-                    if (result.user_id == req.user.user_id){
+                    if (result.user_id == req.user.user_id) {
                         await sceneModel.update(data, { where: { id: data.scene_id } });
                         apiResponseHandler.send(req, res, "data", data, "Scene updated successfully")
                     } else {
@@ -30,7 +30,7 @@ class SceneController {
             apiResponseHandler.sendError(req, res, "data", null, "Error saving this scene. Please try again with correct data.");
         }
     }
-   
+
     static async listMeScene(req, res, next) {
         try {
             //get scenes form list for current user
