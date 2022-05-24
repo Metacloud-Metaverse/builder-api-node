@@ -6,7 +6,8 @@ const assetController = require("../controllers/AssetController.ts");
 
 router.post('/builder/save', auth, sceneController.saveBuilder)
 router.get('/scene/list-me', auth, sceneController.listMeScene)
-router.get('/asset-pack/save', auth, assetController.saveAssetPack)
-router.get('/asset/save', assetController.saveAsset)
+router.post('/asset-pack/save', auth, assetController.saveAssetPack)
+router.post('/asset/save', assetController.saveAsset)
+router.get('/asset-pack/list-me', auth, assetController.getAssetPackbyUser)
 
 module.exports = router;
