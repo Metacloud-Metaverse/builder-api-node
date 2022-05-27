@@ -55,7 +55,26 @@ class SceneController {
             }
         }
         catch (error) {
-            next(error)
+            apiResponseHandler.sendError(req, res, "data", null, "Error fetching scene. Please try again with correct data.")
+        }
+    }
+    static async getSceneById(req, res, next) {
+        try {
+            const scene_id = req.params.id;
+            let isSceneExist = await SceneController.sceneExist(scene_id)
+            if (!isSceneExist) {
+                apiResponseHandler.sendError(req, res, "data", null, "No scene exist with given scene_id");
+            } else {
+                const result = isSceneExist;
+                if (result.user_id == req.user.user_id) {
+                    apiResponseHandler.send(req, res, "data", result, "Scene fetched by scene Id successfully")
+                } else {
+                    apiResponseHandler.sendError(req, res, "data", null, "You do not have permissions to fetch this scene.");
+                }
+            }
+        }
+        catch (error) {
+            apiResponseHandler.sendError(req, res, "data", null, "Error fetching scene. Please try again with correct data.")
         }
     }
     static async sceneExist(id) {

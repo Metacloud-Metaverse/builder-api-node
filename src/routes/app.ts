@@ -9,5 +9,6 @@ router.get('/scene/list-me', auth, sceneController.listMeScene)
 router.post('/asset-pack/save', auth, assetController.saveAssetPack)
 router.post('/asset/save', assetController.saveAsset)
 router.get('/asset-pack/list-me', auth, assetController.getAssetPackbyUser)
+router.get('/scene/fetch-by-id/:id', auth, sceneController.getSceneById)
 
 module.exports = router;
