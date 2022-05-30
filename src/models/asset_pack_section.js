@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class asset_pack extends Model {
+  class asset_pack_section extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,8 +13,8 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  asset_pack.init({
-    user_id: {
+  asset_pack_section.init({
+    pack_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -25,6 +25,9 @@ module.exports = (sequelize, DataTypes) => {
     image: {
       type: DataTypes.STRING,
       allowNull: true,
+      validate: {
+        isUrl: true,
+      }
     },
     created_at: {
       type: DataTypes.DATE,
@@ -36,8 +39,8 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {
     sequelize,
-    modelName: 'asset_pack',
+    modelName: 'asset_pack_section',
     timestamps: false
   });
-  return asset_pack;
+  return asset_pack_section;
 };

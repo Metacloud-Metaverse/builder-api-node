@@ -1,6 +1,6 @@
 const dbs = require('../models/index.js')
 const assetPackModel = dbs.asset_pack
-const assetModel = dbs.Asset
+const assetModel = dbs.asset_pack_item
 const apiResponseHandler = require('../helper/ApiResponse.ts')
 
 
@@ -9,10 +9,25 @@ class AssetController {
     static async saveAssetPack(req, res, next) {
         try {
             const data = req.body
-            data.user_id = req.user.user_id
             if (await AssetController.checkRequiredAssetPack(req, res, data) && await AssetController.checkValidation(req, res, data)) {
-                await assetPackModel.create(data);
-                apiResponseHandler.send(req, res, "data", data, "Asset Pack saved successfully")
+                if (!data.id) {
+                    data.user_id = req.user.user_id
+                    await assetPackModel.create(data);
+                    apiResponseHandler.send(req, res, "data", data, "Asset pack saved successfully")
+                } else {
+                    let isAssetPackExist = await AssetController.assetPackExist(data.id)
+                    if (!isAssetPackExist) {
+                        apiResponseHandler.sendError(req, res, "data", null, "No asset pack exist with given Asset Pack id");
+                    } else {
+                        const result = isAssetPackExist.toJSON();
+                        if (result.user_id == req.user.user_id) {
+                            await assetPackModel.update(data, { where: { id: data.id } });
+                            apiResponseHandler.send(req, res, "data", data, "Asset pack updated successfully")
+                        } else {
+                            apiResponseHandler.sendError(req, res, "data", null, "You do not have permissions to edit this asset pack.");
+                        }
+                    }
+                }
             }
         } catch (error) {
             apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset Pack. Please try again with correct data.");
@@ -65,12 +80,6 @@ class AssetController {
         if (!data.name || data.name === null || !(isNaN(data.name))) {
             const message = "Name field required is either empty or null or not string"
             apiResponseHandler.sendError(req, res, "data", null, message)
-        } else if (!data.image || data.image === null || !(isNaN(data.image))) {
-            const message = "Image field required is either empty or null or not string"
-            apiResponseHandler.sendError(req, res, "data", null, message)
-        } else if (!data.assets || data.assets === null || !(Array.isArray(data.assets))) {
-            const message = "Assets field required is either empty or null or not array"
-            apiResponseHandler.sendError(req, res, "data", null, message)
         } else {
             return true
         }
@@ -90,8 +99,11 @@ class AssetController {
         }
     }
     static async checkValidation(req, res, data) {
-        if (!this.validURL(data.image)) {
+        if (data.image && !this.validImageURL(data.image)) {
             const message = "Image field value is not valid URL"
+            apiResponseHandler.sendError(req, res, "data", null, message)
+        } else if (data.id && isNaN(data.id)) {
+            const message = "Id field is invalid, should be integer"
             apiResponseHandler.sendError(req, res, "data", null, message)
         } else {
             return true
@@ -113,6 +125,12 @@ class AssetController {
             '(\\?[;&a-z\\d%_.~+=-]*)?' +
             '(\\#[-a-z\\d_]*)?$', 'i');
         return !!pattern.test(url);
+    }
+    static validImageURL(url) {
+        return (url.match(/\.(jpeg|jpg|gif|png)$/) != null);
+    }
+    static async assetPackExist(id) {
+        return assetPackModel.findOne({ where: { id: id } })
     }
 }
 module.exports = AssetController;
