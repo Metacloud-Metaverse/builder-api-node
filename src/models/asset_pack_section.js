@@ -24,10 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     image: {
       type: DataTypes.STRING,
-      allowNull: true,
-      validate: {
-        isUrl: true,
-      }
+      allowNull: true
     },
     created_at: {
       type: DataTypes.DATE,

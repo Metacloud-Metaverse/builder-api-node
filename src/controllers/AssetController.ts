@@ -1,5 +1,6 @@
 const dbs = require('../models/index.js')
 const assetPackModel = dbs.asset_pack
+const assetPackSectionModel = dbs.asset_pack_section
 const assetModel = dbs.asset_pack_item
 const apiResponseHandler = require('../helper/ApiResponse.ts')
 
@@ -9,7 +10,7 @@ class AssetController {
     static async saveAssetPack(req, res, next) {
         try {
             const data = req.body
-            if (await AssetController.checkRequiredAssetPack(req, res, data) && await AssetController.checkValidation(req, res, data)) {
+            if (await AssetController.checkRequired(req, res, data) && await AssetController.checkValidation(req, res, data)) {
                 if (!data.id) {
                     data.user_id = req.user.user_id
                     await assetPackModel.create(data);
@@ -32,7 +33,8 @@ class AssetController {
         } catch (error) {
             apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset Pack. Please try again with correct data.");
         }
-    } static async saveAsset(req, res, next) {
+    }
+    static async saveAsset(req, res, next) {
         try {
             const data = req.body;
             if (await AssetController.checkRequiredAsset(req, res, data) && await AssetController.checkValidationAsset(req, res, data)) {
@@ -43,8 +45,33 @@ class AssetController {
             apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset. Please try again with correct data.");
         }
     }
-
-
+    static async saveAssetPackSection(req, res, next) {
+        try {
+            const data = req.body
+            let isAssetPackExist = await AssetController.assetPackExist(data.pack_id)
+            if (isAssetPackExist) {
+                if (await AssetController.checkRequired(req, res, data) && await AssetController.checkValidation(req, res, data)) {
+                    if (!data.id) {
+                        data.user_id = req.user.user_id
+                        await assetPackSectionModel.create(data);
+                        apiResponseHandler.send(req, res, "data", data, "Asset-pack-section saved successfully")
+                    } else {
+                        const result = isAssetPackExist.toJSON();
+                        if (result.user_id == req.user.user_id) {
+                            await assetPackSectionModel.update(data, { where: { id: data.id } });
+                            apiResponseHandler.send(req, res, "data", data, "Asset-pack-section updated successfully")
+                        } else {
+                            apiResponseHandler.sendError(req, res, "data", null, "You do not have permissions to edit this Asset-pack-section.");
+                        }
+                    }
+                }
+            } else {
+            apiResponseHandler.sendError(req, res, "data", null, "No asset pack exist with given Asset Pack id");
+            }
+            } catch (error) {
+            apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset pack section. Please try again with correct data.");
+            }
+        }
     static async getAssetPackbyUser(req, res, next) {
         try {
             //get Asset Pack form list for current user
@@ -52,14 +79,8 @@ class AssetController {
             if (!isAssetPackExist) {
                 apiResponseHandler.send(req, res, "data", null, "No Data found for current user")
             } else {
-                const result = isAssetPackExist;
+                const result = isAssetPackExist
                 if (Array.isArray(result) && result.length) {
-                    let a = result.length;
-                    const assets = []
-                    for (let i = 0; i < a; i++) {
-                        const asset = await AssetController.getAssetsByArray(result[i].assets)
-                        result[i].assets = asset
-                    }
                     apiResponseHandler.send(req, res, "data", result, "List all Asset Pack for curren user successfully")
                 } else {
                     apiResponseHandler.send(req, res, "data", null, "No Data found for current user")
@@ -67,7 +88,7 @@ class AssetController {
             }
         }
         catch (error) {
-            next(error)
+            apiResponseHandler.sendError(req, res, "data", null, "Error fetching  Asset packs. Please try again with correct data.");
         }
     }
     static async assetPackExistForUser(user_id) {
@@ -76,7 +97,7 @@ class AssetController {
     static async getAssetsByArray(assetArray) {
         return assetModel.findAll({ where: { id: assetArray } })
     }
-    static async checkRequiredAssetPack(req, res, data) {
+    static async checkRequired(req, res, data) {
         if (!data.name || data.name === null || !(isNaN(data.name))) {
             const message = "Name field required is either empty or null or not string"
             apiResponseHandler.sendError(req, res, "data", null, message)
