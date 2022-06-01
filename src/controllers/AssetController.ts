@@ -1,7 +1,7 @@
 const dbs = require('../models/index.js')
 const assetPackModel = dbs.asset_pack
 const assetPackSectionModel = dbs.asset_pack_section
-const assetModel = dbs.asset_pack_item
+const assetItemModel = dbs.asset_pack_item
 const apiResponseHandler = require('../helper/ApiResponse.ts')
 
 
@@ -34,17 +34,6 @@ class AssetController {
             apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset Pack. Please try again with correct data.");
         }
     }
-    static async saveAsset(req, res, next) {
-        try {
-            const data = req.body;
-            if (await AssetController.checkRequiredAsset(req, res, data) && await AssetController.checkValidationAsset(req, res, data)) {
-                await assetModel.create(data);
-                apiResponseHandler.send(req, res, "data", data, "Asset saved successfully")
-            }
-        } catch (error) {
-            apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset. Please try again with correct data.");
-        }
-    }
     static async saveAssetPackSection(req, res, next) {
         try {
             const data = req.body
@@ -66,12 +55,33 @@ class AssetController {
                     }
                 }
             } else {
-            apiResponseHandler.sendError(req, res, "data", null, "No asset pack exist with given Asset Pack id");
+                apiResponseHandler.sendError(req, res, "data", null, "No asset pack exist with given Asset Pack id");
             }
-            } catch (error) {
+        } catch (error) {
             apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset pack section. Please try again with correct data.");
-            }
         }
+    }
+    static async saveAssetPackItem(req, res, next) {
+        try {
+            const data = req.body;
+            if (await AssetController.checkRequiredAsset(req, res, data) && await AssetController.checkValidation(req, res, data) && await AssetController.checkValidationAsset(req, res, data)) {
+                let isAssetPackSectionExist = await AssetController.assetPackSectionExist(data.section_id)
+                if (isAssetPackSectionExist) {
+                    if (!data.id) {
+                        await assetItemModel.create(data);
+                        apiResponseHandler.send(req, res, "data", data, "Asset-pack-item saved successfully")
+                    } else {
+                        await assetItemModel.update(data, { where: { id: data.id } });
+                        apiResponseHandler.send(req, res, "data", data, "Asset-pack-item updated successfully")
+                    }
+                } else {
+                    apiResponseHandler.sendError(req, res, "data", null, "No asset pack section exist with given section_id");
+                }
+            }
+        } catch (error) {
+            apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset. Please try again with correct data.");
+        }
+    }
     static async getAssetPackbyUser(req, res, next) {
         try {
             //get Asset Pack form list for current user
@@ -95,7 +105,7 @@ class AssetController {
         return assetPackModel.findAll({ where: { user_id: user_id } })
     }
     static async getAssetsByArray(assetArray) {
-        return assetModel.findAll({ where: { id: assetArray } })
+        return assetItemModel.findAll({ where: { id: assetArray } })
     }
     static async checkRequired(req, res, data) {
         if (!data.name || data.name === null || !(isNaN(data.name))) {
@@ -112,8 +122,8 @@ class AssetController {
         } else if (!data.url || data.url === null || !(isNaN(data.url))) {
             const message = "Url field required is either empty or null or not string"
             apiResponseHandler.sendError(req, res, "data", null, message)
-        } else if (!data.tags || data.tags === null || !(Array.isArray(data.tags))) {
-            const message = "Tags field required is either empty or null or not array"
+        } else if (!data.section_id || data.section_id === null || isNaN(data.section_id)) {
+            const message = "Section field required is either empty or null or not integer"
             apiResponseHandler.sendError(req, res, "data", null, message)
         } else {
             return true
@@ -134,6 +144,9 @@ class AssetController {
         if (!this.validURL(data.url)) {
             const message = "URL field value is not valid URL"
             apiResponseHandler.sendError(req, res, "data", null, message)
+        } else if (data.tags && (data.tags === null || !(Array.isArray(data.tags)))) {
+            const message = "Tags is not valid,should be array"
+            apiResponseHandler.sendError(req, res, "data", null, message)
         } else {
             return true
         }
@@ -152,6 +165,9 @@ class AssetController {
     }
     static async assetPackExist(id) {
         return assetPackModel.findOne({ where: { id: id } })
+    }
+    static async assetPackSectionExist(id) {
+        return assetPackSectionModel.findOne({ where: { id: id } })
     }
 }
 module.exports = AssetController;
