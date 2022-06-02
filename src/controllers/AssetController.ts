@@ -90,7 +90,22 @@ class AssetController {
                 apiResponseHandler.send(req, res, "data", null, "No Data found for current user")
             } else {
                 const result = isAssetPackExist
+                // console.log(result)
                 if (Array.isArray(result) && result.length) {
+                    let a = result.length;
+                    const sections = []
+                    for (let i = 0; i < a; i++) {
+                        console.log(result[i].id)
+                        const section = await AssetController.assetPackSectionByPackId(result[i].id)
+                        let b = section.length
+                        for (let j = 0; j < b; j++) {
+                            console.log(section[j].id)
+                            sections[j] = section[j].id
+                        }
+                        const assets = await AssetController.getAssetsByArray(sections)
+                        result[i].assets = assets
+                    }
+                    console.log(result)
                     apiResponseHandler.send(req, res, "data", result, "List all Asset Pack for curren user successfully")
                 } else {
                     apiResponseHandler.send(req, res, "data", null, "No Data found for current user")
@@ -102,10 +117,10 @@ class AssetController {
         }
     }
     static async assetPackExistForUser(user_id) {
-        return assetPackModel.findAll({ where: { user_id: user_id } })
+        return assetPackModel.findAll({ where: { user_id: user_id }, raw: true })
     }
-    static async getAssetsByArray(assetArray) {
-        return assetItemModel.findAll({ where: { id: assetArray } })
+    static async getAssetsByArray(sections) {
+        return assetItemModel.findAll({ where: { section_id: sections }, raw: true })
     }
     static async checkRequired(req, res, data) {
         if (!data.name || data.name === null || !(isNaN(data.name))) {
@@ -168,6 +183,13 @@ class AssetController {
     }
     static async assetPackSectionExist(id) {
         return assetPackSectionModel.findOne({ where: { id: id } })
+    }
+    static async assetPackSectionByPackId(id) {
+        return assetPackSectionModel.findAll({
+            where: { pack_id: id },
+            attributes: ['id'],
+            raw: true
+        })
     }
 }
 module.exports = AssetController;
