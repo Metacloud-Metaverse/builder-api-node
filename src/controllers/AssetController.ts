@@ -90,22 +90,32 @@ class AssetController {
                 apiResponseHandler.send(req, res, "data", null, "No Data found for current user")
             } else {
                 const result = isAssetPackExist
-                // console.log(result)
                 if (Array.isArray(result) && result.length) {
                     let a = result.length;
-                    const sections = []
                     for (let i = 0; i < a; i++) {
-                        console.log(result[i].id)
                         const section = await AssetController.assetPackSectionByPackId(result[i].id)
-                        let b = section.length
-                        for (let j = 0; j < b; j++) {
-                            console.log(section[j].id)
-                            sections[j] = section[j].id
+                        if (Array.isArray(section) && section.length) {
+                            let b = section.length
+                            const sections = []
+                            for (let j = 0; j < b; j++) {
+                                const assetArray = []
+                                const asset = await AssetController.getAssetsBySectionId(section[j].id)
+                                if (Array.isArray(asset) && asset.length) {
+                                    let c = asset.length
+                                    for (let k = 0; k < c; k++) {
+                                        asset[k].section = section[j].name
+                                        assetArray[k] = asset[k]
+                                    }
+                                    sections[j] = assetArray
+                                } else {
+                                    sections[j] = "Asset Item not availble for section_id: " + section[j].id
+                                }
+                            }
+                            result[i].assets = sections
+                        } else {
+                            result[i].assets = "Asset Section not availble for pack_id: " + result[i].id
                         }
-                        const assets = await AssetController.getAssetsByArray(sections)
-                        result[i].assets = assets
                     }
-                    console.log(result)
                     apiResponseHandler.send(req, res, "data", result, "List all Asset Pack for curren user successfully")
                 } else {
                     apiResponseHandler.send(req, res, "data", null, "No Data found for current user")
@@ -117,10 +127,10 @@ class AssetController {
         }
     }
     static async assetPackExistForUser(user_id) {
-        return assetPackModel.findAll({ where: { user_id: user_id }, raw: true })
+        return assetPackModel.findAll({ where: { user_id: user_id }, attributes: ['id', 'user_id', 'name', 'image'], raw: true })
     }
-    static async getAssetsByArray(sections) {
-        return assetItemModel.findAll({ where: { section_id: sections }, raw: true })
+    static async getAssetsBySectionId(section_id) {
+        return assetItemModel.findAll({ where: { section_id: section_id }, attributes: ['id', 'name', 'image', 'tags', 'url'], raw: true })
     }
     static async checkRequired(req, res, data) {
         if (!data.name || data.name === null || !(isNaN(data.name))) {
@@ -187,7 +197,7 @@ class AssetController {
     static async assetPackSectionByPackId(id) {
         return assetPackSectionModel.findAll({
             where: { pack_id: id },
-            attributes: ['id'],
+            attributes: ['id', 'name'],
             raw: true
         })
     }
