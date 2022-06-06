@@ -37,9 +37,9 @@ class AssetController {
     static async saveAssetPackSection(req, res, next) {
         try {
             const data = req.body
-            let isAssetPackExist = await AssetController.assetPackExist(data.pack_id)
-            if (isAssetPackExist) {
-                if (await AssetController.checkRequired(req, res, data) && await AssetController.checkValidation(req, res, data)) {
+            if (await AssetController.checkRequiredAssetSection(req, res, data) && await AssetController.checkValidation(req, res, data)) {
+                    let isAssetPackExist = await AssetController.assetPackExist(data.pack_id)
+                    if (isAssetPackExist) {
                     if (!data.id) {
                         data.user_id = req.user.user_id
                         await assetPackSectionModel.create(data);
@@ -53,9 +53,9 @@ class AssetController {
                             apiResponseHandler.sendError(req, res, "data", null, "You do not have permissions to edit this Asset-pack-section.");
                         }
                     }
+                } else {
+                    apiResponseHandler.sendError(req, res, "data", null, "No asset pack exist with given Asset Pack id");
                 }
-            } else {
-                apiResponseHandler.sendError(req, res, "data", null, "No asset pack exist with given Asset Pack id");
             }
         } catch (error) {
             apiResponseHandler.sendError(req, res, "data", null, "Error saving this Asset pack section. Please try again with correct data.");
@@ -135,6 +135,17 @@ class AssetController {
     static async checkRequired(req, res, data) {
         if (!data.name || data.name === null || !(isNaN(data.name))) {
             const message = "Name field required is either empty or null or not string"
+            apiResponseHandler.sendError(req, res, "data", null, message)
+        } else {
+            return true
+        }
+    }
+    static async checkRequiredAssetSection(req, res, data) {
+        if (!data.name || data.name === null || !(isNaN(data.name))) {
+            const message = "Name field required is either empty or null or not string"
+            apiResponseHandler.sendError(req, res, "data", null, message)
+        } else if (!data.pack_id || data.pack_id === null || isNaN(data.pack_id)) {
+            const message = "Asset Pack field required is either empty or null or not integer"
             apiResponseHandler.sendError(req, res, "data", null, message)
         } else {
             return true
