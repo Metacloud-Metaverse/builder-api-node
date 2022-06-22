@@ -88,65 +88,26 @@ class SceneController {
     }
   }
 
-  static async saveBuilder(req, res, next) {
+  static async getSceneById(req, res) {
     try {
-      const data = req.body;
-      data.user_id = req.user.user_id;
-      if (!data.title || data.title === null || !(isNaN(data.title))) {
-        const message = "Title field required is either empty or null or not string"
-        apiResponseHandler.sendError(req, res, "data", null, message)
-      } else if (!data.data) {
-        const message = "Data field required is either empty or null"
-        apiResponseHandler.sendError(req, res, "data", null, message)
-      } else {
-        if (!data.scene_id) {
-          const ESCENACREADA = await sceneModel.create(data, "Scene created successfully");
-          console.log(ESCENACREADA.dataValues.id)
-          apiResponseHandler.send(req, res, "data", data, "Scene saved successfully")
-        } else {
-          let isSceneExist = await SceneController.sceneExist(data.scene_id)
-          if (!isSceneExist) {
-            apiResponseHandler.sendError(req, res, "data", null, "No scene exist with given scene_id");
-          } else {
-            const result = isSceneExist.toJSON();
-            if (result.user_id == req.user.user_id) {
-              await sceneModel.update(data, { where: { id: data.scene_id } });
-              apiResponseHandler.send(req, res, "data", data, "Scene updated successfully")
-            } else {
-              apiResponseHandler.sendError(req, res, "data", null, "You do not have permissions to edit this scene.");
-            }
-          }
-        }
-      }
-    } catch (error) {
-      apiResponseHandler.sendError(req, res, "data", null, "Error saving this scene. Please try again with correct data.");
-    }
-  }
+      const { id } = req.params;
+      const scene = await sceneRepository.findScene(id);
 
-  static async getSceneById(req, res, next) {
-    try {
-      const scene_id = req.params.id;
-      let isSceneExist = await SceneController.sceneExist(scene_id)
-      if (!isSceneExist) {
-        apiResponseHandler.sendError(req, res, "data", null, "No scene exist with given scene_id");
-      } else {
-        const result = isSceneExist;
-        if (result.user_id == req.user.user_id) {
-          apiResponseHandler.send(req, res, "data", result, "Scene fetched by scene Id successfully")
-        } else {
-          apiResponseHandler.sendError(req, res, "data", null, "You do not have permissions to fetch this scene.");
-        }
+      if (!scene) {
+        return res.status(404).json({
+          statusCode: 'FAIL',
+          message: 'Scene not found'
+        })
       }
+
+      return res.status(200).json(scene);
     }
     catch (error) {
-      apiResponseHandler.sendError(req, res, "data", null, "Error fetching scene. Please try again with correct data.")
+      return res.status(500).json({
+        statusCode: 'FAIL',
+        message: 'Internal Server Error'
+      })
     }
-  }
-  static async sceneExist(id) {
-    return sceneModel.findOne({ where: { id: id } })
-  }
-  static async sceneExistListMe(id) {
-    return sceneModel.findAll({ where: { user_id: id } })
   }
 }
 module.exports = SceneController;
