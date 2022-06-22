@@ -1,8 +1,6 @@
 const Jwt = require("jsonwebtoken");
 const ApiResponseHandler = require('../helper/ApiResponse.ts')
 
-const config = process.env;
-
 const verifyToken = (req, res, next) => {
     const bearerHeader = req.headers["authorization"];
     if (!bearerHeader) {
@@ -11,11 +9,12 @@ const verifyToken = (req, res, next) => {
     } else {
         try {
             const bearerToken = bearerHeader.split(" ")[1];
-            const decoded = Jwt.verify(bearerToken, config.ACCESS_TOKEN_SECRET);
+            const decoded = Jwt.verify(bearerToken, process.env.ACCESS_TOKEN_SECRET);
             req.user = decoded;
             return next();
         } catch (err) {
             ApiResponseHandler.sendError(req, res, "data", err, "User does not exist");
+            console.log(process.env.ACCESS_TOKEN_SECRET)
         }
     }
 };

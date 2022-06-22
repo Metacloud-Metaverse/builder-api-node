@@ -1,4 +1,4 @@
-const env = require('dotenv').config()
+require('dotenv').config();
 const express = require('express')
 const ApiRoutes = require('./routes/app.ts')
 const compression = require("compression")
